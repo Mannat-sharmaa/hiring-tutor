@@ -9,6 +9,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
+const compression = require('compression');
 
 const connectDB = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
@@ -39,6 +40,7 @@ app.use(cors({
   },
   credentials: true
 }));
+app.use(compression()); // Compress all JSON/text responses for instant loading speeds
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
@@ -49,13 +51,13 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 // Global rate limiter; auth routes get a stricter one inline where mounted
 const globalLimiter = rateLimit({ 
   windowMs: 15 * 60 * 1000, 
-  max: process.env.NODE_ENV === 'production' ? 500 : 5000 
+  max: process.env.NODE_ENV === 'production' ? 1500 : 5000 
 });
 app.use('/api', globalLimiter);
 
 const authLimiter = rateLimit({ 
   windowMs: 15 * 60 * 1000, 
-  max: process.env.NODE_ENV === 'production' ? 30 : 1000 
+  max: process.env.NODE_ENV === 'production' ? 300 : 1000 
 });
 app.use('/api/auth', authLimiter);
 
