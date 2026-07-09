@@ -9,6 +9,7 @@ const generateOtp = () => {
 };
 
 const transporter = nodemailer.createTransport({
+  pool: true, // Keep connection warm and open to ensure instant OTP email delivery (under 20 seconds)
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT) || 587,
   secure: parseInt(process.env.SMTP_PORT) === 465, // true for 465 (SSL), false for 587 (TLS)
