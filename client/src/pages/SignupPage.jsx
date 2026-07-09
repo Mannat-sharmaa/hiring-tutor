@@ -216,6 +216,22 @@ export default function SignupPage() {
                       placeholder="Email address"
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      onBlur={async (e) => {
+                        const emailVal = e.target.value;
+                        if (!emailVal || !emailVal.includes('@')) return;
+                        try {
+                          const { data } = await api.post('/auth/check-email', { email: emailVal });
+                          if (data.exists) {
+                            useAuthStore.setState({ error: 'Email already registered. Please log in.' });
+                          } else {
+                            if (useAuthStore.getState().error === 'Email already registered. Please log in.') {
+                              useAuthStore.setState({ error: null });
+                            }
+                          }
+                        } catch (err) {
+                          console.error('Email check error:', err);
+                        }
+                      }}
                       className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-violet"
                     />
                   </>
