@@ -1,6 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { register, verifyOtp, login, logout, getMe, getSocketToken, googleLogin, getConfig, forgotPassword, resetPassword, updateUserProfile, changePassword } = require('../controllers/authController');
+const { register, verifyOtp, login, logout, getMe, getSocketToken, googleLogin, getConfig, forgotPassword, resetPassword, updateUserProfile, changePassword, resendOtp } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const validate = require('../middleware/validate');
 
@@ -45,6 +45,13 @@ router.post(
   [body('userId').notEmpty(), body('otp').isLength({ min: 6, max: 6 })],
   validate,
   verifyOtp
+);
+
+router.post(
+  '/resend-otp',
+  [body('userId').notEmpty()],
+  validate,
+  resendOtp
 );
 
 router.post(

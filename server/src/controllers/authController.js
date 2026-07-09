@@ -358,6 +358,38 @@ const changePassword = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Resend OTP
+// @route   POST /api/auth/resend-otp
+// @access  Public
+const resendOtp = asyncHandler(async (req, res) => {
+  const { userId } = req.body;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+  if (user.isEmailVerified) {
+    res.status(400);
+    throw new Error('Email already verified');
+  }
+
+  const { otp, expires } = generateOtp();
+  user.otp = otp;
+  user.otpExpires = expires;
+  await user.save();
+
+  // Send email in the background without blocking the HTTP response
+  sendOtpEmail(user.email, otp).catch((err) => {
+    console.warn('OTP email failed to send in background:', err.message);
+  });
+
+  res.json({
+    success: true,
+    message: 'OTP resent successfully',
+  });
+});
+
 module.exports = { 
   register, 
   verifyOtp, 
@@ -370,5 +402,6 @@ module.exports = {
   forgotPassword,
   resetPassword,
   updateUserProfile,
-  changePassword
+  changePassword,
+  resendOtp
 };

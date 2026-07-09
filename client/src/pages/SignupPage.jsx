@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { GraduationCap, BookOpen } from 'lucide-react';
 import useAuthStore from '../store/authStore';
+import api from '../services/api';
 
 const STEPS = ['role', 'details', 'otp'];
 
@@ -16,6 +17,32 @@ export default function SignupPage() {
   const [userId, setUserId] = useState(null);
   const [otp, setOtp] = useState(new Array(6).fill(''));
   const otpRefs = useRef([]);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [resendStatus, setResendStatus] = useState('');
+
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
+
+  const handleResendOtp = async () => {
+    if (resendTimer > 0) return;
+    setResendStatus('Resending code...');
+    try {
+      await api.post('/auth/resend-otp', { userId });
+      setResendStatus('Verification code resent successfully!');
+      setResendTimer(30);
+      setTimeout(() => setResendStatus(''), 3000);
+    } catch (err) {
+      setResendStatus(err.response?.data?.message || 'Failed to resend code');
+      setTimeout(() => setResendStatus(''), 4000);
+    }
+  };
 
   const handleDetailsSubmit = async (e) => {
     e.preventDefault();
@@ -24,6 +51,7 @@ export default function SignupPage() {
       const data = await register({ fullName: form.fullName, email: form.email, password: form.password, role });
       setUserId(data.userId);
       setStep(2);
+      setResendTimer(30);
     } catch {
       /* error surfaced via store */
     }
@@ -196,6 +224,18 @@ export default function SignupPage() {
                 </div>
 
                 {error && <p className="mt-3 text-xs text-red-400">{error}</p>}
+
+                <div className="mt-4 flex flex-col items-center">
+                  <button
+                    type="button"
+                    disabled={resendTimer > 0}
+                    onClick={handleResendOtp}
+                    className="text-xs font-semibold text-cyan-electric hover:underline disabled:text-white/30 disabled:no-underline"
+                  >
+                    {resendTimer > 0 ? `Resend OTP in ${resendTimer}s` : 'Resend OTP'}
+                  </button>
+                  {resendStatus && <p className="mt-2 text-[11px] text-white/60">{resendStatus}</p>}
+                </div>
 
                 <button
                   type="submit"
