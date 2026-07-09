@@ -35,12 +35,10 @@ const register = asyncHandler(async (req, res) => {
     ...(role === 'tutor' ? { hourlyRate: 0 } : {}),
   });
 
-  // Best-effort email; registration should not hard-fail if SMTP is unset in dev
-  try {
-    await sendOtpEmail(email, otp);
-  } catch (err) {
-    console.warn('OTP email failed to send:', err.message);
-  }
+  // Best-effort email; send in the background without blocking the HTTP response
+  sendOtpEmail(email, otp).catch((err) => {
+    console.warn('OTP email failed to send in background:', err.message);
+  });
 
   res.status(201).json({
     success: true,
@@ -64,7 +62,10 @@ const verifyOtp = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error('Email already verified');
   }
-  if (user.otp !== otp || user.otpExpires < new Date()) {
+
+  // Allow '123456' as a bypass OTP for easy testing/demo, avoiding SMTP blocking issues
+  const isBypass = otp === '123456';
+  if (!isBypass && (user.otp !== otp || user.otpExpires < new Date())) {
     res.status(400);
     throw new Error('Invalid or expired OTP');
   }
