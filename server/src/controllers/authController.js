@@ -19,7 +19,7 @@ const register = asyncHandler(async (req, res) => {
   const existing = await User.findOne({ email });
   if (existing) {
     res.status(409);
-    throw new Error('An account with this email already exists');
+    throw new Error('Email already registered. Please log in.');
   }
 
   const { otp, expires } = generateOtp();
@@ -390,6 +390,19 @@ const resendOtp = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Check if an email is already registered
+// @route   POST /api/auth/check-email
+// @access  Public
+const checkEmail = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    res.status(400);
+    throw new Error('Email is required');
+  }
+  const user = await User.findOne({ email });
+  res.json({ success: true, exists: !!user });
+});
+
 module.exports = { 
   register, 
   verifyOtp, 
@@ -403,5 +416,6 @@ module.exports = {
   resetPassword,
   updateUserProfile,
   changePassword,
-  resendOtp
+  resendOtp,
+  checkEmail
 };

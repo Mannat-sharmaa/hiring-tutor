@@ -32,7 +32,19 @@ export default function SignupPage() {
           window.google.accounts.id.initialize({
             client_id: clientId,
             callback: async (response) => {
-              setGoogleIdToken(response.credential);
+              try {
+                const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                const email = payload.email;
+                const checkRes = await api.post('/auth/check-email', { email });
+                if (checkRes.data.exists) {
+                  alert('Email already registered. Please log in.');
+                  return;
+                }
+                setGoogleIdToken(response.credential);
+              } catch (err) {
+                console.error('Email check failed:', err);
+                alert('Verification failed. Please try again.');
+              }
             },
           });
           const btnContainer = document.getElementById('google-signup-btn');

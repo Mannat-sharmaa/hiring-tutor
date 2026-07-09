@@ -1,6 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { register, verifyOtp, login, logout, getMe, getSocketToken, googleLogin, getConfig, forgotPassword, resetPassword, updateUserProfile, changePassword, resendOtp } = require('../controllers/authController');
+const { register, verifyOtp, login, logout, getMe, getSocketToken, googleLogin, getConfig, forgotPassword, resetPassword, updateUserProfile, changePassword, resendOtp, checkEmail } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 const validate = require('../middleware/validate');
 
@@ -70,5 +70,6 @@ router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 router.put('/profile', protect, updateUserProfile);
 router.put('/password', protect, changePassword);
+router.post('/check-email', checkEmail);
 
 module.exports = router;
