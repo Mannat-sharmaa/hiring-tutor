@@ -55,10 +55,10 @@ export default function BookingPage() {
         startTime: form.time,
         durationMinutes: form.duration,
       });
-    } catch {
-      // In demo mode without a live backend, still show success so the flow can be reviewed end-to-end.
+      setConfirmed(true);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Booking failed. Please check your connection and try again.');
     }
-    setConfirmed(true);
   };
 
   if (confirmed) {

@@ -25,10 +25,26 @@ const createBooking = asyncHandler(async (req, res) => {
   const platformFee = Math.round(tutorFee * PLATFORM_COMMISSION_RATE);
   const total = tutorFee + platformFee;
 
+  let finalSubjectId = subjectId;
+  if (!finalSubjectId) {
+    if (tutor.subjects && tutor.subjects.length > 0) {
+      finalSubjectId = tutor.subjects[0].subject;
+    } else {
+      const Subject = require('../models/Subject');
+      const fallbackSubject = await Subject.findOne();
+      if (fallbackSubject) {
+        finalSubjectId = fallbackSubject._id;
+      } else {
+        res.status(400);
+        throw new Error('Please select a subject for the booking');
+      }
+    }
+  }
+
   const booking = await Booking.create({
     student: req.user._id,
     tutor: tutorId,
-    subject: subjectId,
+    subject: finalSubjectId,
     classType,
     isDemoClass: !!isDemoClass,
     scheduledDate,
