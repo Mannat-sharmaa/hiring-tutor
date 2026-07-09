@@ -5,6 +5,28 @@ const { protect } = require('../middleware/authMiddleware');
 const validate = require('../middleware/validate');
 
 const router = express.Router();
+const { sendOtpEmail } = require('../utils/otp');
+
+router.get('/test-email', async (req, res) => {
+  try {
+    const testEmail = req.query.email || 'smannat401@gmail.com';
+    await sendOtpEmail(testEmail, '999999');
+    res.json({ success: true, message: `Test email sent successfully to ${testEmail}` });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'SMTP Email failed to send',
+      error: err.message,
+      stack: err.stack,
+      config: {
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        user: process.env.SMTP_USER,
+        from: process.env.SMTP_FROM_EMAIL
+      }
+    });
+  }
+});
 
 router.post(
   '/register',
