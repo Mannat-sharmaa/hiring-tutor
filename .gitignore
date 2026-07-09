@@ -1,0 +1,29 @@
+# Dependency directories
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Build directories
+dist/
+client/dist/
+build/
+
+# Environment files (sensitive credentials)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+server/.env
+client/.env
+
+# IDE / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp

@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* CSS variables set by ThemeContext.jsx on every theme change */
+    --color-bg: #0F0F1A;
+    --color-primary: #6C63FF;
+    --color-secondary: #00F2FE;
+    --gradient-brand: linear-gradient(135deg, #6C63FF 0%, #00F2FE 100%);
+    --orb-color-1: rgba(108,99,255,0.2);
+    --orb-color-2: rgba(0,242,254,0.15);
+    --orb-color-3: rgba(255,100,130,0.10);
+  }
+  body {
+    background-color: var(--color-bg) !important;
+    @apply text-white font-body antialiased overflow-x-hidden;
+    transition: background-color 0.5s ease;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+  /* Visible keyboard focus ring everywhere, not just on hover */
+  :focus-visible {
+    outline: 2px solid #00F2FE;
+    outline-offset: 2px;
+  }
+
+  /* Custom Premium Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--gradient-brand);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    opacity: 0.8;
+    border-radius: 9999px;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white/5 backdrop-blur-glass border border-white/10;
+  }
+  .glow-border {
+    @apply border border-violet/40 shadow-glow;
+  }
+  .shimmer {
+    background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.04) 100%);
+    background-size: 800px 100%;
+  }
+  
+  /* Text glow animation classes */
+  .text-glow-cyan {
+    text-shadow: 0 0 10px rgba(0, 242, 254, 0.5), 0 0 20px rgba(0, 242, 254, 0.2);
+  }
+  .text-glow-violet {
+    text-shadow: 0 0 10px rgba(108, 99, 255, 0.5), 0 0 20px rgba(108, 99, 255, 0.2);
+  }
+  /* Theme-aware orbs that respond to CSS variables */
+  .orb-1 { background-color: var(--orb-color-1); }
+  .orb-2 { background-color: var(--orb-color-2); }
+  .orb-3 { background-color: var(--orb-color-3); }
+
+  /* Theme-aware brand gradient button/text */
+  .btn-theme {
+    background: var(--gradient-brand);
+  }
+  .text-theme-primary {
+    color: var(--color-primary);
+  }
+  .text-theme-gradient {
+    background: var(--gradient-brand);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* Premium dynamic glow animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(var(--color-primary), 0.15), 0 0 40px rgba(var(--color-secondary), 0.1);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(var(--color-primary), 0.35), 0 0 70px rgba(var(--color-secondary), 0.25);
+  }
+}
+
+.premium-glow-pulse {
+  animation: pulseGlow 8s infinite ease-in-out;
+}
+
+/* Custom interactive active states */
+.scale-active-click:active {
+  transform: scale(0.96);
+  transition: transform 0.1s ease;
+}
+
+/* Respect reduced-motion preference: kill non-essential animation globally */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

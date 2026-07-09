@@ -1,0 +1,73 @@
+// Used purely as a local fallback so the Search page has something to render
+// before the backend is running. searchTutors() in services/api.js is the
+// real data path; this file should not be imported once the API is live.
+const MOCK_TUTORS = [
+  {
+    _id: '1',
+    fullName: 'Ayesha Khan',
+    headline: 'IIT Grad | 8 Years Teaching Calculus',
+    hourlyRate: 25,
+    ratingAverage: 4.9,
+    ratingCount: 214,
+    experienceYears: 8,
+    avatar: '',
+    subjects: [{ subject: { name: 'Calculus' } }, { subject: { name: 'Physics' } }],
+  },
+  {
+    _id: '2',
+    fullName: 'Daniel Osei',
+    headline: 'Senior Software Engineer teaching Python & DSA',
+    hourlyRate: 40,
+    ratingAverage: 4.8,
+    ratingCount: 176,
+    experienceYears: 6,
+    avatar: '',
+    subjects: [{ subject: { name: 'Python' } }, { subject: { name: 'DSA' } }],
+  },
+  {
+    _id: '3',
+    fullName: 'Maria Fernandez',
+    headline: 'IELTS & Spanish Language Coach',
+    hourlyRate: 18,
+    ratingAverage: 4.7,
+    ratingCount: 98,
+    experienceYears: 5,
+    avatar: '',
+    subjects: [{ subject: { name: 'IELTS' } }, { subject: { name: 'Spanish' } }],
+  },
+  {
+    _id: '4',
+    fullName: 'Rahul Mehta',
+    headline: 'Classical & Acoustic Guitar Instructor',
+    hourlyRate: 15,
+    ratingAverage: 4.95,
+    ratingCount: 340,
+    experienceYears: 10,
+    avatar: '',
+    subjects: [{ subject: { name: 'Guitar' } }, { subject: { name: 'Music Theory' } }],
+  },
+  {
+    _id: '5',
+    fullName: 'Sophie Laurent',
+    headline: 'French Language & Literature, Native Speaker',
+    hourlyRate: 22,
+    ratingAverage: 4.85,
+    ratingCount: 152,
+    experienceYears: 7,
+    avatar: '',
+    subjects: [{ subject: { name: 'French' } }],
+  },
+  {
+    _id: '6',
+    fullName: 'James Whitfield',
+    headline: 'Ex-Google | Data Science & Machine Learning',
+    hourlyRate: 55,
+    ratingAverage: 4.9,
+    ratingCount: 88,
+    experienceYears: 9,
+    avatar: '',
+    subjects: [{ subject: { name: 'Machine Learning' } }, { subject: { name: 'Python' } }],
+  },
+];
+
+export default MOCK_TUTORS;
