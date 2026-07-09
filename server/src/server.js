@@ -32,7 +32,13 @@ const server = http.createServer(app);
 
 // --- Security & parsing middleware ---
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(cors({
+  origin: (origin, callback) => {
+    // Dynamically reflect requesting origin to support multi-domain/Vercel preview builds with credentials
+    callback(null, true);
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
