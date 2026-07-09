@@ -18,6 +18,38 @@ const transporter = nodemailer.createTransport({
 
 const sendOtpEmail = async (toEmail, otp) => {
   const fromEmail = process.env.SMTP_FROM_EMAIL || 'smannat401@gmail.com';
+  const apiKey = process.env.SMTP_PASS;
+
+  // Render blocks all SMTP ports (587, 465, etc.).
+  // If a Brevo REST API key is provided (starts with 'xkeysib-'), we send via HTTPS Web API on port 443 (which is never blocked!).
+  if (apiKey && apiKey.startsWith('xkeysib-')) {
+    try {
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': apiKey,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: 'EduConnect', email: fromEmail },
+          to: [{ email: toEmail }],
+          subject: 'Your EduConnect verification code',
+          htmlContent: `<p>Your verification code is <b>${otp}</b>. It expires in 10 minutes.</p>`,
+        }),
+      });
+
+      if (response.ok) {
+        return; // Success!
+      }
+      const errData = await response.json();
+      console.warn('Brevo HTTP API failed, falling back to SMTP:', errData);
+    } catch (err) {
+      console.warn('Brevo HTTP API fetch error, falling back to SMTP:', err.message);
+    }
+  }
+
+  // Fallback to standard SMTP (works on localhost / local development)
   await transporter.sendMail({
     from: `"EduConnect" <${fromEmail}>`,
     to: toEmail,
