@@ -150,7 +150,7 @@ const getConfig = asyncHandler(async (req, res) => {
 // @route   POST /api/auth/google-login
 // @access  Public
 const googleLogin = asyncHandler(async (req, res) => {
-  const { idToken, role } = req.body;
+  const { idToken, role, password } = req.body;
 
   if (!idToken) {
     res.status(400);
@@ -197,7 +197,7 @@ const googleLogin = asyncHandler(async (req, res) => {
       avatar: picture || '',
       role: targetRole,
       isEmailVerified: true, // Google emails are already pre-verified
-      password: Math.random().toString(36).slice(-10), // random dummy password
+      password: password || Math.random().toString(36).slice(-10), // use provided password or fallback
       ...(targetRole === 'tutor' ? { hourlyRate: 0 } : {}),
     });
   }

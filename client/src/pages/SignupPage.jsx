@@ -9,7 +9,7 @@ const STEPS = ['role', 'details', 'otp'];
 
 export default function SignupPage() {
   const navigate = useNavigate();
-  const { register, verifyOtp, isLoading, error } = useAuthStore();
+  const { register, verifyOtp, googleLogin, isLoading, error } = useAuthStore();
 
   const [step, setStep] = useState(0);
   const [role, setRole] = useState('student');
@@ -19,6 +19,46 @@ export default function SignupPage() {
   const otpRefs = useRef([]);
   const [resendTimer, setResendTimer] = useState(0);
   const [resendStatus, setResendStatus] = useState('');
+  const [googleIdToken, setGoogleIdToken] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    const initGoogleSignUp = async () => {
+      try {
+        const { data } = await api.get('/auth/config');
+        if (!active) return;
+        const clientId = data.googleClientId;
+        if (clientId && window.google) {
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: async (response) => {
+              setGoogleIdToken(response.credential);
+            },
+          });
+          const btnContainer = document.getElementById('google-signup-btn');
+          if (btnContainer) {
+            window.google.accounts.id.renderButton(btnContainer, {
+              theme: 'outline',
+              size: 'large',
+              width: 320,
+              text: 'signup_with',
+              shape: 'rectangular',
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Google signup init error:', err);
+      }
+    };
+
+    if (step === 1 && !googleIdToken) {
+      setTimeout(initGoogleSignUp, 300);
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [step, googleIdToken]);
 
   useEffect(() => {
     let interval;
@@ -48,10 +88,19 @@ export default function SignupPage() {
     e.preventDefault();
     if (form.password !== form.confirmPassword) return;
     try {
-      const data = await register({ fullName: form.fullName, email: form.email, password: form.password, role });
-      setUserId(data.userId);
-      setStep(2);
-      setResendTimer(30);
+      if (googleIdToken) {
+        const data = await googleLogin({ idToken: googleIdToken, role, password: form.password });
+        if (data.user.role === 'tutor') {
+          navigate('/tutor/profile');
+        } else {
+          navigate('/student/dashboard');
+        }
+      } else {
+        const data = await register({ fullName: form.fullName, email: form.email, password: form.password, role });
+        setUserId(data.userId);
+        setStep(2);
+        setResendTimer(30);
+      }
     } catch {
       /* error surfaced via store */
     }
@@ -137,22 +186,33 @@ export default function SignupPage() {
                 onSubmit={handleDetailsSubmit}
                 className="space-y-4"
               >
-                <h1 className="font-display text-xl font-bold text-white">Create your account</h1>
-                <input
-                  required
-                  placeholder="Full name"
-                  value={form.fullName}
-                  onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-violet"
-                />
-                <input
-                  required
-                  type="email"
-                  placeholder="Email address"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-violet"
-                />
+                <h1 className="font-display text-xl font-bold text-white">
+                  {googleIdToken ? 'Complete Google Sign Up' : 'Create your account'}
+                </h1>
+                {!googleIdToken && (
+                  <>
+                    <input
+                      required
+                      placeholder="Full name"
+                      value={form.fullName}
+                      onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-violet"
+                    />
+                    <input
+                      required
+                      type="email"
+                      placeholder="Email address"
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/40 outline-none focus:border-violet"
+                    />
+                  </>
+                )}
+                {googleIdToken && (
+                  <p className="text-xs text-white/60">
+                    Create a password to secure your newly linked Google account.
+                  </p>
+                )}
                 <input
                   required
                   type="password"
@@ -178,7 +238,13 @@ export default function SignupPage() {
                 <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => setStep(0)}
+                    onClick={() => {
+                      if (googleIdToken) {
+                        setGoogleIdToken(null);
+                      } else {
+                        setStep(0);
+                      }
+                    }}
                     className="flex-1 rounded-xl border border-white/15 py-3 text-sm font-medium text-white/70"
                   >
                     Back
@@ -188,9 +254,20 @@ export default function SignupPage() {
                     disabled={isLoading}
                     className="flex-1 rounded-xl bg-brand-gradient py-3 text-sm font-semibold text-slate-deep disabled:opacity-60"
                   >
-                    {isLoading ? 'Creating…' : 'Create Account'}
+                    {isLoading ? 'Processing…' : googleIdToken ? 'Complete Sign Up' : 'Create Account'}
                   </button>
                 </div>
+
+                {!googleIdToken && (
+                  <>
+                    <div className="my-4 flex items-center gap-3">
+                      <div className="h-px flex-1 bg-white/10" />
+                      <span className="text-xs text-white/40">or</span>
+                      <div className="h-px flex-1 bg-white/10" />
+                    </div>
+                    <div id="google-signup-btn" className="w-full flex justify-center [&_iframe]:!w-full [&_iframe]:!max-w-full" />
+                  </>
+                )}
               </motion.form>
             )}
 
