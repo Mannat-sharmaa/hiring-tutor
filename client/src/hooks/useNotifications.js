@@ -45,7 +45,8 @@ export function useNotifications() {
           socket = null;
         }
 
-        const socketUrl = window.location.hostname === 'localhost' ? 'http://127.0.0.1:5001' : '/';
+        const apiBase = import.meta.env.VITE_API_URL || '';
+        const socketUrl = apiBase ? apiBase.replace('/api', '') : 'http://127.0.0.1:5001';
         socket = io(socketUrl, {
           withCredentials: true,
           auth: { token },

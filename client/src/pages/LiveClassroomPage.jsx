@@ -509,7 +509,8 @@ export default function LiveClassroomPage() {
         const { data } = await api.get('/auth/socket-token');
         const token = data.token;
 
-        const socketUrl = window.location.hostname === 'localhost' ? 'http://127.0.0.1:5001' : '/';
+        const apiBase = import.meta.env.VITE_API_URL || '';
+        const socketUrl = apiBase ? apiBase.replace('/api', '') : 'http://127.0.0.1:5001';
         activeSocket = io(socketUrl, {
           withCredentials: true,
           auth: { token },

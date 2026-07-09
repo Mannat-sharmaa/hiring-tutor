@@ -4,7 +4,7 @@ import axios from 'axios';
 // httpOnly auth cookie automatically; baseURL is proxied to the API in dev
 // (see vite.config.js) and should point at the real API host in production.
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   withCredentials: true,
 });
 
