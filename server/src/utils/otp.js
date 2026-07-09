@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
   auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
 });
 
-const sendOtpEmail = async (toEmail, otp) => {
+const sendCustomEmail = async (toEmail, subject, htmlContent) => {
   const fromEmail = process.env.SMTP_FROM_EMAIL || 'smannat401@gmail.com';
   const apiKey = process.env.SMTP_PASS;
 
@@ -34,8 +34,8 @@ const sendOtpEmail = async (toEmail, otp) => {
         body: JSON.stringify({
           sender: { name: 'EduConnect', email: fromEmail },
           to: [{ email: toEmail }],
-          subject: 'Your EduConnect verification code',
-          htmlContent: `<p>Your verification code is <b>${otp}</b>. It expires in 10 minutes.</p>`,
+          subject,
+          htmlContent,
         }),
       });
 
@@ -53,9 +53,17 @@ const sendOtpEmail = async (toEmail, otp) => {
   await transporter.sendMail({
     from: `"EduConnect" <${fromEmail}>`,
     to: toEmail,
-    subject: 'Your EduConnect verification code',
-    html: `<p>Your verification code is <b>${otp}</b>. It expires in 10 minutes.</p>`,
+    subject,
+    html: htmlContent,
   });
 };
 
-module.exports = { generateOtp, sendOtpEmail };
+const sendOtpEmail = async (toEmail, otp) => {
+  await sendCustomEmail(
+    toEmail,
+    'Your EduConnect verification code',
+    `<p>Your verification code is <b>${otp}</b>. It expires in 10 minutes.</p>`
+  );
+};
+
+module.exports = { generateOtp, sendOtpEmail, sendCustomEmail };

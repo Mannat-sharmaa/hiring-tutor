@@ -3,7 +3,7 @@ const User = require('../models/User');
 require('../models/Tutor');
 require('../models/Student');
 const generateTokenAndSetCookie = require('../utils/generateToken');
-const { generateOtp, sendOtpEmail } = require('../utils/otp');
+const { generateOtp, sendOtpEmail, sendCustomEmail } = require('../utils/otp');
 
 // @desc    Register a new student or tutor
 // @route   POST /api/auth/register
@@ -220,7 +220,6 @@ const googleLogin = asyncHandler(async (req, res) => {
 // @access  Public
 const forgotPassword = asyncHandler(async (req, res) => {
   const crypto = require('crypto');
-  const nodemailer = require('nodemailer');
   const { email } = req.body;
 
   const user = await User.findOne({ email });
@@ -234,40 +233,41 @@ const forgotPassword = asyncHandler(async (req, res) => {
   user.resetPasswordExpires = Date.now() + 3600000; // 1 hour expiration
   await user.save({ validateBeforeSave: false });
 
-  // Reset Link URL
-  const resetUrl = `http://localhost:5173/reset-password?token=${token}`;
+  // Resolve client origin dynamically (Vercel production URL or localhost)
+  let clientOrigin = req.headers.origin;
+  if (!clientOrigin && req.get('referer')) {
+    try {
+      const refUrl = new URL(req.get('referer'));
+      clientOrigin = `${refUrl.protocol}//${refUrl.host}`;
+    } catch {
+      // noop
+    }
+  }
+  if (!clientOrigin) {
+    clientOrigin = 'https://hiring-tutor-4l9q-teal.vercel.app';
+  }
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT),
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+  const resetUrl = `${clientOrigin}/reset-password?token=${token}`;
 
-  const mailOptions = {
-    from: `"EduConnect" <${process.env.SMTP_FROM_EMAIL}>`,
-    to: user.email,
-    subject: 'EduConnect - Password Reset Request',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-        <h2 style="color: #9d4edd; text-align: center;">EduConnect Password Reset</h2>
-        <p>Hello,</p>
-        <p>You requested a password reset for your EduConnect account. Please click the button below to reset your password:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetUrl}" style="background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%); color: #fff; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">Reset Password</a>
-        </div>
-        <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
-        <p>This link will expire in 1 hour.</p>
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
-        <p style="font-size: 11px; color: #999; text-align: center;">© ${new Date().getFullYear()} EduConnect. All rights reserved.</p>
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+      <h2 style="color: #9d4edd; text-align: center;">EduConnect Password Reset</h2>
+      <p>Hello,</p>
+      <p>You requested a password reset for your EduConnect account. Please click the button below to reset your password:</p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetUrl}" style="background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%); color: #fff; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">Reset Password</a>
       </div>
-    `,
-  };
+      <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
+      <p style="color: #666; font-size: 13px;">If the button doesn't work, copy and paste this link into your browser:</p>
+      <p style="word-break: break-all; font-size: 12px; color: #00F2FE;"><a href="${resetUrl}">${resetUrl}</a></p>
+      <p>This link will expire in 1 hour.</p>
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+      <p style="font-size: 11px; color: #999; text-align: center;">© ${new Date().getFullYear()} EduConnect. All rights reserved.</p>
+    </div>
+  `;
 
   try {
-    await transporter.sendMail(mailOptions);
+    await sendCustomEmail(user.email, 'EduConnect - Password Reset Request', htmlContent);
   } catch (err) {
     console.warn('Failed to send password reset email:', err.message);
     res.status(500);

@@ -16,12 +16,10 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError('');
     try {
-      // Backend route not scaffolded yet in this pass — wire to
-      // POST /api/auth/forgot-password once it's added.
-      await api.post('/auth/forgot-password', { email }).catch(() => {});
+      await api.post('/auth/forgot-password', { email });
       setSent(true);
-    } catch {
-      setError('Something went wrong. Please try again.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
