@@ -26,6 +26,9 @@ const useAuthStore = create((set) => ({
     set({ isLoading: true, error: null });
     try {
       const { data } = await api.post('/auth/verify-otp', { userId, otp });
+      if (data.token) {
+        localStorage.setItem('educonnect_token', data.token);
+      }
       set({ user: data.user, isLoading: false, isInitialized: true });
       return data;
     } catch (err) {
@@ -38,6 +41,9 @@ const useAuthStore = create((set) => ({
     set({ isLoading: true, error: null });
     try {
       const { data } = await api.post('/auth/login', { email, password });
+      if (data.token) {
+        localStorage.setItem('educonnect_token', data.token);
+      }
       set({ user: data.user, isLoading: false, isInitialized: true });
       return data;
     } catch (err) {
@@ -50,6 +56,9 @@ const useAuthStore = create((set) => ({
     set({ isLoading: true, error: null });
     try {
       const { data } = await api.post('/auth/google-login', { idToken, role });
+      if (data.token) {
+        localStorage.setItem('educonnect_token', data.token);
+      }
       set({ user: data.user, isLoading: false, isInitialized: true });
       return data;
     } catch (err) {
@@ -62,6 +71,7 @@ const useAuthStore = create((set) => ({
     try {
       await api.post('/auth/logout');
     } finally {
+      localStorage.removeItem('educonnect_token');
       set({ user: null, isInitialized: true });
     }
   },

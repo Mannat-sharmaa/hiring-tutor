@@ -8,6 +8,14 @@ const api = axios.create({
   withCredentials: true,
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('educonnect_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export const searchTutors = (params) => api.get('/tutors/search', { params }).then((r) => r.data);
 export const getSubjects = (parent = null) =>
   api.get('/subjects', { params: { parent: parent ?? 'null' } }).then((r) => r.data);
