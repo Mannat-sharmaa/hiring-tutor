@@ -16,8 +16,9 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendOtpEmail = async (toEmail, otp) => {
+  const fromEmail = process.env.SMTP_FROM_EMAIL || 'smannat401@gmail.com';
   await transporter.sendMail({
-   from: `"EduConnect" <${process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER}>`,
+    from: `"EduConnect" <${fromEmail}>`,
     to: toEmail,
     subject: 'Your EduConnect verification code',
     html: `<p>Your verification code is <b>${otp}</b>. It expires in 10 minutes.</p>`,
