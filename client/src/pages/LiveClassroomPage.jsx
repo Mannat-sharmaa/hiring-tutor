@@ -441,7 +441,13 @@ export default function LiveClassroomPage() {
     }
 
     const pc = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' }
+      ],
     });
 
     pc.onicecandidate = (e) => {
@@ -458,6 +464,14 @@ export default function LiveClassroomPage() {
           const newStream = new MediaStream([e.track]);
           remoteAudioRef.current.srcObject = newStream;
         }
+        // Explicitly trigger audio play to bypass mobile browser autoplay blocks
+        setTimeout(() => {
+          if (remoteAudioRef.current) {
+            remoteAudioRef.current.play().catch(err => {
+              console.warn('Playback blocked by browser autoplay policy:', err);
+            });
+          }
+        }, 150);
       }
     };
 
@@ -1164,7 +1178,7 @@ export default function LiveClassroomPage() {
         )}
       </AnimatePresence>
       {/* Hidden audio element for remote stream playback */}
-      <audio ref={remoteAudioRef} autoPlay />
+      <audio ref={remoteAudioRef} autoPlay playsInline />
     </div>
   );
 }
