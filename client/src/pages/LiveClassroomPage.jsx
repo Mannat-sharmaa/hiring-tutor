@@ -420,6 +420,7 @@ export default function LiveClassroomPage() {
   const isTutor = user?.role === 'tutor';
 
   const [micOn, setMicOn] = useState(true);
+  const [micReady, setMicReady] = useState(false);
   const [camOn, setCamOn] = useState(true);
   const [seconds, setSeconds] = useState(0);
   const [activeTab, setActiveTab] = useState('whiteboard');
@@ -451,7 +452,12 @@ export default function LiveClassroomPage() {
 
     pc.ontrack = (e) => {
       if (remoteAudioRef.current) {
-        remoteAudioRef.current.srcObject = e.streams[0];
+        if (e.streams && e.streams[0]) {
+          remoteAudioRef.current.srcObject = e.streams[0];
+        } else {
+          const newStream = new MediaStream([e.track]);
+          remoteAudioRef.current.srcObject = newStream;
+        }
       }
     };
 
@@ -465,7 +471,7 @@ export default function LiveClassroomPage() {
     return pc;
   };
 
-  // Capture user microphone stream
+  // Capture user microphone stream first
   useEffect(() => {
     const startAudio = async () => {
       try {
@@ -476,6 +482,8 @@ export default function LiveClassroomPage() {
         });
       } catch (err) {
         console.warn('Microphone access denied or unavailable:', err);
+      } finally {
+        setMicReady(true);
       }
     };
 
@@ -500,8 +508,9 @@ export default function LiveClassroomPage() {
     }
   }, [micOn]);
 
-  // Initialize Socket.io connection for live whiteboard and classroom events
+  // Initialize Socket.io connection once mic check is finished
   useEffect(() => {
+    if (!micReady) return;
     let activeSocket = null;
 
     const initSocket = async () => {
@@ -538,11 +547,18 @@ export default function LiveClassroomPage() {
         activeSocket.disconnect();
       }
     };
-  }, [bookingId]);
+  }, [bookingId, micReady]);
 
   // Set up WebRTC socket handlers
   useEffect(() => {
     if (!socket) return;
+
+    socket.on('classroom:joined', () => {
+      // If a new user joined, student sends ready signal
+      if (!isTutor) {
+        socket.emit('classroom:ready', { bookingId });
+      }
+    });
 
     socket.on('classroom:ready', async () => {
       if (isTutor) {
@@ -558,16 +574,38 @@ export default function LiveClassroomPage() {
         if (signal.type === 'offer') {
           const pc = createPeerConnection();
           await pc.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+          
+          // Process queued candidates
+          if (pc.iceQueue) {
+            for (const cand of pc.iceQueue) {
+              await pc.addIceCandidate(new RTCIceCandidate(cand));
+            }
+            pc.iceQueue = [];
+          }
+          
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
           socket.emit('webrtc:signal', { bookingId, signal: { type: 'answer', sdp: answer } });
         } else if (signal.type === 'answer') {
           if (peerRef.current) {
             await peerRef.current.setRemoteDescription(new RTCSessionDescription(signal.sdp));
+            
+            // Process queued candidates
+            if (peerRef.current.iceQueue) {
+              for (const cand of peerRef.current.iceQueue) {
+                await peerRef.current.addIceCandidate(new RTCIceCandidate(cand));
+              }
+              peerRef.current.iceQueue = [];
+            }
           }
         } else if (signal.type === 'candidate') {
-          if (peerRef.current) {
+          if (peerRef.current && peerRef.current.remoteDescription) {
             await peerRef.current.addIceCandidate(new RTCIceCandidate(signal.candidate));
+          } else {
+            if (peerRef.current) {
+              if (!peerRef.current.iceQueue) peerRef.current.iceQueue = [];
+              peerRef.current.iceQueue.push(signal.candidate);
+            }
           }
         }
       } catch (err) {
@@ -605,6 +643,7 @@ export default function LiveClassroomPage() {
     });
 
     return () => {
+      socket.off('classroom:joined');
       socket.off('classroom:ready');
       socket.off('webrtc:signal');
       socket.off('classroom:end-request');

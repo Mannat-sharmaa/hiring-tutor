@@ -29,6 +29,7 @@ const registerChatSocket = (io) => {
     // Join a classroom room to sync whiteboard and classroom state
     socket.on('classroom:join', (bookingId) => {
       socket.join(`classroom:${bookingId}`);
+      socket.to(`classroom:${bookingId}`).emit('classroom:joined', { userId: socket.userId });
     });
 
     // Broadcast whiteboard drawings
