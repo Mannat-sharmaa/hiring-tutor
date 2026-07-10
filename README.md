@@ -1,5 +1,9 @@
 # EduConnect — MERN Tutor Hiring Platform
 
+### 🚀 Live Deployments
+- **Frontend (Vercel):** [https://hiring-tutor-4l9q-teal.vercel.app](https://hiring-tutor-4l9q-teal.vercel.app)
+- **Backend (Render):** [https://hiring-tutor.onrender.com](https://hiring-tutor.onrender.com)
+
 A complete, working project: a real Express/MongoDB backend and a React
 (Vite + Tailwind + Framer Motion) frontend covering every page from the
 original spec, wired together and verified to build cleanly.
