@@ -55,18 +55,46 @@ export default function SearchPage() {
       limit: 9,
     };
 
+    const getCombinedTutors = (apiList = []) => {
+      let registered = [];
+      try {
+        registered = JSON.parse(localStorage.getItem('educonnect_registered_tutors') || '[]');
+      } catch {
+        registered = [];
+      }
+
+      const base = apiList.length > 0 ? apiList : MOCK_TUTORS;
+      const combined = [...registered];
+      base.forEach((t) => {
+        if (!combined.some((c) => c._id === t._id || (c.email && c.email === t.email))) {
+          combined.push(t);
+        }
+      });
+
+      if (debouncedQuery) {
+        const q = debouncedQuery.toLowerCase();
+        return combined.filter((t) =>
+          (t.fullName && t.fullName.toLowerCase().includes(q)) ||
+          (t.headline && t.headline.toLowerCase().includes(q)) ||
+          (t.bio && t.bio.toLowerCase().includes(q)) ||
+          (t.subjects || []).some((s) => (s.subject?.name || s.name || '').toLowerCase().includes(q))
+        );
+      }
+
+      return combined;
+    };
+
     searchTutors(params)
       .then((data) => {
         if (cancelled) return;
-        setTutors(data.results);
-        setHasMore(data.pagination.hasMore);
+        const results = data.results || [];
+        setTutors(getCombinedTutors(results));
+        setHasMore(false);
         setUsingFallback(false);
       })
       .catch(() => {
-        // No backend running yet — fall back to local sample data so the
-        // page is still usable while the API/frontend are developed in parallel.
         if (cancelled) return;
-        setTutors(MOCK_TUTORS);
+        setTutors(getCombinedTutors([]));
         setHasMore(false);
         setUsingFallback(true);
       })

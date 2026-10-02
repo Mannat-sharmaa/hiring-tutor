@@ -3,6 +3,30 @@
 // real data path; this file should not be imported once the API is live.
 const MOCK_TUTORS = [
   {
+    _id: 'tutor_goutam_sharma',
+    fullName: 'Goutam Sharma',
+    email: 'goutamshrma1976@gmail.com',
+    headline: 'Senior Mathematics & Science Specialist | 10+ Yrs Exp',
+    hourlyRate: 30,
+    ratingAverage: 4.95,
+    ratingCount: 184,
+    experienceYears: 10,
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+    subjects: [{ subject: { name: 'Mathematics' } }, { subject: { name: 'Science' } }, { subject: { name: 'Calculus' } }],
+  },
+  {
+    _id: 'tutor_manav_sharma',
+    fullName: 'Manav Sharma',
+    email: 'smannat401@gmail.com',
+    headline: 'Senior Mathematics & Physics Specialist | 6+ Yrs Exp',
+    hourlyRate: 25,
+    ratingAverage: 4.9,
+    ratingCount: 38,
+    experienceYears: 6,
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+    subjects: [{ subject: { name: 'Mathematics' } }, { subject: { name: 'Physics' } }, { subject: { name: 'Calculus' } }],
+  },
+  {
     _id: '1',
     fullName: 'Ayesha Khan',
     headline: 'IIT Grad | 8 Years Teaching Calculus',
