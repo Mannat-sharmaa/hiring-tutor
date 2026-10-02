@@ -36,7 +36,7 @@ const formItemVariants = {
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { user, login, googleLogin, isLoading, error } = useAuthStore();
+  const { user, login, googleLogin, loginAsDemo, isLoading, error } = useAuthStore();
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
 
@@ -254,6 +254,45 @@ export default function LoginPage() {
             id="google-btn-container"
             className="w-full flex justify-center [&_iframe]:!w-full [&_iframe]:!max-w-full"
           />
+
+          {/* Quick Demo Access for Teacher/Evaluator */}
+          <motion.div variants={formItemVariants} className="mt-5 pt-4 border-t border-white/10">
+            <p className="text-center text-xs font-semibold uppercase tracking-wider text-cyan-electric/80 mb-2.5">
+              ⚡ Quick Demo Login (One-Click)
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  loginAsDemo('tutor');
+                  navigate('/tutor/dashboard');
+                }}
+                className="flex items-center justify-center gap-1 rounded-xl border border-cyan-electric/30 bg-cyan-electric/10 hover:bg-cyan-electric/20 py-2.5 px-2 text-xs font-semibold text-cyan-electric transition-all active:scale-95"
+              >
+                👨‍🏫 Tutor
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  loginAsDemo('student');
+                  navigate('/student/dashboard');
+                }}
+                className="flex items-center justify-center gap-1 rounded-xl border border-violet-400/30 bg-violet-500/10 hover:bg-violet-500/20 py-2.5 px-2 text-xs font-semibold text-violet-300 transition-all active:scale-95"
+              >
+                🎓 Student
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  loginAsDemo('admin');
+                  navigate('/admin');
+                }}
+                className="flex items-center justify-center gap-1 rounded-xl border border-amber-400/30 bg-amber-500/10 hover:bg-amber-500/20 py-2.5 px-2 text-xs font-semibold text-amber-300 transition-all active:scale-95"
+              >
+                🛡️ Admin
+              </button>
+            </div>
+          </motion.div>
 
           <motion.p variants={formItemVariants} className="mt-6 text-center text-sm text-white/50">
             Don't have an account?{' '}
