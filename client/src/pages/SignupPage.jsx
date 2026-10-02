@@ -310,6 +310,9 @@ export default function SignupPage() {
               >
                 <h1 className="font-display text-xl font-bold text-white">Verify your email</h1>
                 <p className="mt-1 text-sm text-white/50">Enter the 6-digit code we sent to {form.email}</p>
+                <div className="mt-2.5 inline-block rounded-lg bg-cyan-electric/10 border border-cyan-electric/25 px-3 py-1 text-xs font-medium text-cyan-electric">
+                  ⚡ Demo OTP: <b>123456</b>
+                </div>
 
                 <div className="mt-6 flex justify-center gap-2">
                   {otp.map((digit, i) => (
