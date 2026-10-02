@@ -26,6 +26,9 @@ const reviewRoutes = require('./routes/reviewRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const registerChatSocket = require('./sockets/chatSocket');
 
+const mongoose = require('mongoose');
+mongoose.set('bufferCommands', false);
+
 connectDB();
 
 const app = express();
