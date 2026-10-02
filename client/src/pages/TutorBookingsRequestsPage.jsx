@@ -31,20 +31,35 @@ export default function TutorBookingsRequestsPage() {
 
   const load = async () => {
     setLoading(true);
+    let allUpcoming = [];
+    let completedBookings = [];
     try {
       const [upRes, compRes] = await Promise.all([
         api.get('/bookings/me', { params: { status: 'upcoming' } }),
         api.get('/bookings/me', { params: { status: 'completed' } }),
       ]);
-      const allUpcoming = upRes.data.bookings || [];
-      setPending(allUpcoming.filter((b) => b.status === 'pending'));
-      setUpcoming(allUpcoming.filter((b) => b.status === 'confirmed'));
-      setPast(compRes.data.bookings || []);
+      allUpcoming = upRes.data.bookings || [];
+      completedBookings = compRes.data.bookings || [];
     } catch {
-      // silent
-    } finally {
-      setLoading(false);
+      allUpcoming = [];
+      completedBookings = [];
     }
+
+    try {
+      const localRequests = JSON.parse(localStorage.getItem('educonnect_tutor_requests') || '[]');
+      localRequests.forEach((req) => {
+        if (!allUpcoming.some((u) => u._id === req._id)) {
+          allUpcoming.unshift(req);
+        }
+      });
+    } catch {
+      // ignore
+    }
+
+    setPending(allUpcoming.filter((b) => b.status === 'pending'));
+    setUpcoming(allUpcoming.filter((b) => b.status === 'confirmed'));
+    setPast(completedBookings);
+    setLoading(false);
   };
 
   useEffect(() => { load(); }, []);

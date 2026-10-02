@@ -75,14 +75,32 @@ export default function StudentBookingsPage() {
 
   const fetchBookings = async (status) => {
     setLoading(true);
+    let remoteBookings = [];
     try {
       const { data } = await api.get('/bookings/me', { params: { status } });
-      setBookings(data.bookings || []);
+      remoteBookings = data.bookings || [];
     } catch {
-      setBookings([]);
-    } finally {
-      setLoading(false);
+      remoteBookings = [];
     }
+
+    let localBookings = [];
+    try {
+      localBookings = JSON.parse(localStorage.getItem('educonnect_student_bookings') || '[]');
+    } catch {
+      localBookings = [];
+    }
+
+    const filteredLocal = status === 'upcoming' 
+      ? localBookings.filter(b => b.status === 'confirmed' || b.status === 'pending')
+      : (status === 'completed' ? localBookings.filter(b => b.status === 'completed') : localBookings.filter(b => b.status === 'cancelled'));
+
+    const combined = [...filteredLocal];
+    remoteBookings.forEach(b => {
+      if (!combined.some(c => c._id === b._id)) combined.push(b);
+    });
+
+    setBookings(combined);
+    setLoading(false);
   };
 
   useEffect(() => {
